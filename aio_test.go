@@ -20,8 +20,8 @@ func NewAsyncIO() (*AsyncIO, error) {
 }
 
 func TestAIOStructure(t *testing.T) {
-	var cb iocb
-	var evt event
+	var cb Iocb
+	var evt Event
 
 	if unsafe.Sizeof(cb) != 64 {
 		t.Fatal(fmt.Sprintf("Invalid iocb structure size: %d != %d", unsafe.Sizeof(cb), 64))

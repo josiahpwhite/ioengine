@@ -5,7 +5,7 @@ package ioengine
 
 import "unsafe"
 
-type iocb struct {
+type Iocb struct {
 	data   unsafe.Pointer
 	key    uint64
 	opcode int16
@@ -19,9 +19,9 @@ type iocb struct {
 	resfd  uint32
 }
 
-type event struct {
+type Event struct {
 	data unsafe.Pointer
-	obj  *iocb
+	obj  *Iocb
 	res  int64
 	res2 int64
 }

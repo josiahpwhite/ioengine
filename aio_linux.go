@@ -30,12 +30,12 @@ type RequestID uint
 type runningEvent struct {
 	data  [][]byte
 	wrote uint
-	iocb  *iocb
+	iocb  *Iocb
 	reqID RequestID
 }
 
 type requestState struct {
-	iocb  *iocb
+	iocb  *Iocb
 	done  bool
 	err   error
 	bytes int64
@@ -54,10 +54,10 @@ type AsyncIO struct {
 	ioctx IOContext
 
 	// iocbs it's used to do IO
-	iocbs []*iocb
+	iocbs []*Iocb
 
 	// events it's used to capture completed IO event
-	events []event
+	events []Event
 
 	// offset read and write file offset
 	offset int64
@@ -69,12 +69,12 @@ type AsyncIO struct {
 	reqID RequestID
 
 	// running the pool of commited IO
-	// map structure: map[*iocb]*runningEvent
+	// map structure: map[*Iocb]*runningEvent
 	running ConcurrentMap
 
 	// available the pool of available IO, it's max vale is opt.AIOQueueDepth
 	// if is no available iocb, the IO(read, write) will be block until it has.
-	// map structure: map[*iocb]bool
+	// map structure: map[*Iocb]bool
 	available ConcurrentMap
 
 	// request pool record every IO stat
@@ -117,7 +117,7 @@ func newAsyncIO(name string, opt Options) (*AsyncIO, error) {
 
 	// init iocbs and available pool
 	available := NewConcurrentMap()
-	iocbs := make([]*iocb, opt.AIOQueueDepth)
+	iocbs := make([]*Iocb, opt.AIOQueueDepth)
 	for i := range iocbs {
 		iocbs[i] = NewIocb(uint32(fd.Fd()))
 		available.Set(pointer2string(unsafe.Pointer(iocbs[i])), iocbs[i])
@@ -127,7 +127,7 @@ func newAsyncIO(name string, opt Options) (*AsyncIO, error) {
 		fd:        fd,
 		ioctx:     ioctx,
 		iocbs:     iocbs,
-		events:    make([]event, opt.AIOQueueDepth),
+		events:    make([]Event, opt.AIOQueueDepth),
 		offset:    0,
 		end:       end,
 		reqID:     1,
@@ -219,7 +219,7 @@ func (aio *AsyncIO) waitEvents() error {
 }
 
 // verifyEvent checks that a retuned event is for a valid request
-func (aio *AsyncIO) verifyEvent(evt event) error {
+func (aio *AsyncIO) verifyEvent(evt Event) error {
 	if evt.obj == nil {
 		return ErrNilCallback
 	}
@@ -276,12 +276,12 @@ func (aio *AsyncIO) resubmit(re *runningEvent) error {
 		re.iocb.PrepPwritev(re.data, nOffset)
 	}
 
-	_, err := aio.ioctx.Submit([]*iocb{re.iocb})
+	_, err := aio.ioctx.Submit([]*Iocb{re.iocb})
 	return err
 }
 
 // freeEvent removes an running event and return its iocb to the available pool
-func (aio *AsyncIO) freeEvent(re *runningEvent, iocb *iocb, err error) error {
+func (aio *AsyncIO) freeEvent(re *runningEvent, iocb *Iocb, err error) error {
 	// help gc free memory early
 	re.data = nil
 
@@ -311,11 +311,11 @@ func (aio *AsyncIO) freeEvent(re *runningEvent, iocb *iocb, err error) error {
 
 // getNextReady will retrieve the next available iocb for use
 // if no iocb are available, it blocks and waits for one.
-func (aio *AsyncIO) getNextReady() *iocb {
+func (aio *AsyncIO) getNextReady() *Iocb {
 	for {
 		_, v, has := aio.available.RandomPop()
 		if has {
-			nIocb, ok := v.(*iocb)
+			nIocb, ok := v.(*Iocb)
 			if ok {
 				return nIocb
 			}
@@ -462,7 +462,7 @@ func (aio *AsyncIO) submitIO(cmd IocbCmd, bs [][]byte, offset int64) (RequestID,
 		nIocb.PrepPwritev(bs, offset)
 	}
 
-	if _, err := aio.ioctx.Submit([]*iocb{nIocb}); err != nil {
+	if _, err := aio.ioctx.Submit([]*Iocb{nIocb}); err != nil {
 		aio.available.Set(pointer2string(unsafe.Pointer(nIocb)), nIocb)
 		return 0, err
 	}

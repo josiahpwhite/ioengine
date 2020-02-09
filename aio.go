@@ -61,7 +61,7 @@ func (ioctx IOContext) Destroy() error {
 	return nil
 }
 
-func (ioctx IOContext) Submit(iocbs []*iocb) (int, error) {
+func (ioctx IOContext) Submit(iocbs []*Iocb) (int, error) {
 	var p unsafe.Pointer
 	if len(iocbs) > 0 {
 		p = unsafe.Pointer(&iocbs[0])
@@ -75,7 +75,7 @@ func (ioctx IOContext) Submit(iocbs []*iocb) (int, error) {
 	return int(n), nil
 }
 
-func (ioctx IOContext) Cancel(iocbs []iocb, events []event) (int, error) {
+func (ioctx IOContext) Cancel(iocbs []Iocb, events []Event) (int, error) {
 	var p0, p1 unsafe.Pointer
 	if len(iocbs) > 0 {
 		p0 = unsafe.Pointer(&iocbs[0])
@@ -97,7 +97,7 @@ func (ioctx IOContext) Cancel(iocbs []iocb, events []event) (int, error) {
 /* getEventsUserland will check for events in userland, returns the number of events
    and a boolean indication weather the event was handled.
 */
-func (ioctx IOContext) getEventsUserland(minnr, nr int, events []event, timeout timespec) (int, bool) {
+func (ioctx IOContext) getEventsUserland(minnr, nr int, events []Event, timeout timespec) (int, bool) {
 	if ioctx == 0 {
 		return 0, false
 	}
@@ -108,7 +108,7 @@ func (ioctx IOContext) getEventsUserland(minnr, nr int, events []event, timeout 
 	if ring.magic != 0xa10a10a1 {
 		return 0, false
 	}
-	ring_events := (*[1 << 31]event)(unsafe.Pointer(uintptr(ioctx) + unsafe.Sizeof(*ring)))[:ring.nr:ring.nr]
+	ring_events := (*[1 << 31]Event)(unsafe.Pointer(uintptr(ioctx) + unsafe.Sizeof(*ring)))[:ring.nr:ring.nr]
 
 	i := 0
 	for i < nr {
@@ -136,7 +136,7 @@ func (ioctx IOContext) getEventsUserland(minnr, nr int, events []event, timeout 
 	return 0, false
 }
 
-func (ioctx IOContext) GetEvents(minnr, nr int, events []event, timeout timespec) (int, error) {
+func (ioctx IOContext) GetEvents(minnr, nr int, events []Event, timeout timespec) (int, error) {
 	if un, handled := ioctx.getEventsUserland(minnr, nr, events, timeout); handled {
 		return int(un), nil
 	}
@@ -156,11 +156,11 @@ func (ioctx IOContext) GetEvents(minnr, nr int, events []event, timeout timespec
 	return int(n), nil
 }
 
-func NewIocb(fd uint32) *iocb {
-	return &iocb{fd: fd, prio: 0}
+func NewIocb(fd uint32) *Iocb {
+	return &Iocb{fd: fd, prio: 0}
 }
 
-func (iocb *iocb) PrepPread(buf []byte, offset int64) {
+func (iocb *Iocb) PrepPread(buf []byte, offset int64) {
 	var p unsafe.Pointer
 	if len(buf) > 0 {
 		p = unsafe.Pointer(&buf[0])
@@ -173,7 +173,7 @@ func (iocb *iocb) PrepPread(buf []byte, offset int64) {
 	iocb.offset = offset
 }
 
-func (iocb *iocb) PrepPwrite(buf []byte, offset int64) {
+func (iocb *Iocb) PrepPwrite(buf []byte, offset int64) {
 	var p unsafe.Pointer
 	if len(buf) > 0 {
 		p = unsafe.Pointer(&buf[0])
@@ -186,7 +186,7 @@ func (iocb *iocb) PrepPwrite(buf []byte, offset int64) {
 	iocb.offset = offset
 }
 
-func (iocb *iocb) PrepPreadv(bs [][]byte, offset int64) {
+func (iocb *Iocb) PrepPreadv(bs [][]byte, offset int64) {
 	iovecs := bytes2Iovec(bs)
 	var p unsafe.Pointer
 	if len(iovecs) > 0 {
@@ -200,7 +200,7 @@ func (iocb *iocb) PrepPreadv(bs [][]byte, offset int64) {
 	iocb.offset = offset
 }
 
-func (iocb *iocb) PrepPwritev(bs [][]byte, offset int64) {
+func (iocb *Iocb) PrepPwritev(bs [][]byte, offset int64) {
 	iovecs := bytes2Iovec(bs)
 	var p unsafe.Pointer
 	if len(iovecs) > 0 {
@@ -214,19 +214,19 @@ func (iocb *iocb) PrepPwritev(bs [][]byte, offset int64) {
 	iocb.offset = offset
 }
 
-func (iocb *iocb) PrepFSync() {
+func (iocb *Iocb) PrepFSync() {
 	iocb.opcode = int16(IOCmdFSync)
 }
 
-func (iocb *iocb) PrepFDSync() {
+func (iocb *Iocb) PrepFDSync() {
 	iocb.opcode = int16(IOCmdFDSync)
 }
 
-func (iocb *iocb) SetEventFd(eventfd int) {
+func (iocb *Iocb) SetEventFd(eventfd int) {
 	iocb.flags |= (1 << 0)
 	iocb.resfd = uint32(eventfd)
 }
 
-func (iocb *iocb) OpCode() IocbCmd {
+func (iocb *Iocb) OpCode() IocbCmd {
 	return IocbCmd(iocb.opcode)
 }

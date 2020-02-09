@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 
-type iocb struct {
+type Iocb struct {
 	data   unsafe.Pointer
 	pad1   uint32
 	key    uint32
@@ -24,10 +24,10 @@ type iocb struct {
 	resfd  uint32
 }
 
-type event struct {
+type Event struct {
 	data unsafe.Pointer
 	pad1 uint32
-	obj  *iocb
+	obj  *Iocb
 	pad2 uint32
 	res  int64
 	pad3 uint32
