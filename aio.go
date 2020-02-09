@@ -23,9 +23,9 @@ const (
 	IOCmdPwritev
 )
 
-type timespec struct {
-	sec  int
-	nsec int
+type Timespec struct {
+	Sec  int
+	Nsec int
 }
 
 type kernelAIORingHdr struct {
@@ -97,7 +97,7 @@ func (ioctx IOContext) Cancel(iocbs []Iocb, events []Event) (int, error) {
 /* getEventsUserland will check for events in userland, returns the number of events
    and a boolean indication weather the event was handled.
 */
-func (ioctx IOContext) getEventsUserland(minnr, nr int, events []Event, timeout timespec) (int, bool) {
+func (ioctx IOContext) getEventsUserland(minnr, nr int, events []Event, timeout Timespec) (int, bool) {
 	if ioctx == 0 {
 		return 0, false
 	}
@@ -125,7 +125,7 @@ func (ioctx IOContext) getEventsUserland(minnr, nr int, events []Event, timeout 
 		}
 	}
 
-	if i == 0 && timeout.sec == 0 && timeout.nsec == 0 && ring.head == ring.tail {
+	if i == 0 && timeout.Sec == 0 && timeout.Nsec == 0 && ring.head == ring.tail {
 		return 0, true
 	}
 
@@ -136,7 +136,7 @@ func (ioctx IOContext) getEventsUserland(minnr, nr int, events []Event, timeout 
 	return 0, false
 }
 
-func (ioctx IOContext) GetEvents(minnr, nr int, events []Event, timeout timespec) (int, error) {
+func (ioctx IOContext) GetEvents(minnr, nr int, events []Event, timeout Timespec) (int, error) {
 	if un, handled := ioctx.getEventsUserland(minnr, nr, events, timeout); handled {
 		return int(un), nil
 	}

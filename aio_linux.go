@@ -195,9 +195,9 @@ func (aio *AsyncIO) waitEvents() error {
 		return nil
 	}
 
-	t := timespec{
-		sec:  aio.opt.AIOTimeout / 1000,
-		nsec: (aio.opt.AIOTimeout % 1000) * 1000 * 1000,
+	t := Timespec{
+		Sec:  aio.opt.AIOTimeout / 1000,
+		Nsec: (aio.opt.AIOTimeout % 1000) * 1000 * 1000,
 	}
 
 	// wait for at least one running IO to complete.
