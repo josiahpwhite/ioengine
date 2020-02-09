@@ -6,6 +6,8 @@ import (
 	"os"
 	"syscall"
 	"unsafe"
+
+	"github.com/josiahpwhite/fencer"
 )
 
 type IocbCmd int16
@@ -24,6 +26,20 @@ const (
 type timespec struct {
 	sec  int
 	nsec int
+}
+
+type kernelAIORingHdr struct {
+	id   uint32
+	nr   uint32
+	head uint32
+	tail uint32
+
+	magic            uint32
+	compatFeatures   uint32
+	incompatFeatures uint32
+	headerLength     uint32
+
+	//struct io_event events[0];
 }
 
 type IOContext uint
@@ -78,13 +94,60 @@ func (ioctx IOContext) Cancel(iocbs []iocb, events []event) (int, error) {
 	return int(n), nil
 }
 
+/* getEventsUserland will check for events in userland, returns the number of events
+   and a boolean indication weather the event was handled.
+*/
+func (ioctx IOContext) getEventsUserland(minnr, nr int, events []event, timeout timespec) (int, bool) {
+	if ioctx == 0 {
+		return 0, false
+	}
+
+	ring := ((*kernelAIORingHdr)(unsafe.Pointer(uintptr(ioctx))))
+
+	// AIO_RING_MAGIC = 0xa10a10a1
+	if ring.magic != 0xa10a10a1 {
+		return 0, false
+	}
+	ring_events := (*[1 << 31]event)(unsafe.Pointer(uintptr(ioctx) + unsafe.Sizeof(*ring)))[:ring.nr:ring.nr]
+
+	i := 0
+	for i < nr {
+		head := ring.head
+		if head == ring.tail {
+			// There are no more completions
+			break
+		} else {
+			// There is another completion to reap
+			events[i] = ring_events[head]
+			fencer.LFence()
+			ring.head = (head + 1) % ring.nr
+			i++
+		}
+	}
+
+	if i == 0 && timeout.sec == 0 && timeout.nsec == 0 && ring.head == ring.tail {
+		return 0, true
+	}
+
+	if i > 0 {
+		return i, true
+	}
+
+	return 0, false
+}
+
 func (ioctx IOContext) GetEvents(minnr, nr int, events []event, timeout timespec) (int, error) {
+	if un, handled := ioctx.getEventsUserland(minnr, nr, events, timeout); handled {
+		return int(un), nil
+	}
+
 	var p unsafe.Pointer
 	if len(events) > 0 {
 		p = unsafe.Pointer(&events[0])
 	} else {
 		p = unsafe.Pointer(&zero)
 	}
+
 	n, _, err := syscall.Syscall6(syscall.SYS_IO_GETEVENTS, uintptr(ioctx), uintptr(minnr),
 		uintptr(nr), uintptr(p), uintptr(unsafe.Pointer(&timeout)), uintptr(0))
 	if err != 0 {
