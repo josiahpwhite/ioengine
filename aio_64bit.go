@@ -20,8 +20,8 @@ type Iocb struct {
 }
 
 type Event struct {
-	data unsafe.Pointer
-	obj  *Iocb
-	res  int64
-	res2 int64
+	Data unsafe.Pointer
+	Obj  *Iocb
+	Res  int64
+	Res2 int64
 }

@@ -220,10 +220,10 @@ func (aio *AsyncIO) waitEvents() error {
 
 // verifyEvent checks that a retuned event is for a valid request
 func (aio *AsyncIO) verifyEvent(evt Event) error {
-	if evt.obj == nil {
+	if evt.Obj == nil {
 		return ErrNilCallback
 	}
-	re, ok := aio.running.Get(pointer2string(unsafe.Pointer(evt.obj)))
+	re, ok := aio.running.Get(pointer2string(unsafe.Pointer(evt.Obj)))
 	if !ok {
 		return ErrUntrackedEventKey
 	}
@@ -231,25 +231,25 @@ func (aio *AsyncIO) verifyEvent(evt Event) error {
 	if !ok {
 		return ErrInvalidEventPtr
 	}
-	if revt.iocb != evt.obj {
+	if revt.iocb != evt.Obj {
 		return ErrInvalidEventPtr
 	}
 	// an error occured with this event, remove the running event and set error code.
-	if evt.res < 0 {
-		return aio.freeEvent(revt, evt.obj, lookupErrNo(int(evt.res)))
+	if evt.Res < 0 {
+		return aio.freeEvent(revt, evt.Obj, lookupErrNo(int(evt.Res)))
 	}
 	//we have an active event returned and its one we are tracking
 	//ensure it wrote our entire buffer, res is > 0 at this point
-	if evt.res > 0 && uint(count(revt.data)) != (uint(evt.res)+revt.wrote) {
-		revt.wrote += uint(evt.res)
+	if evt.Res > 0 && uint(count(revt.data)) != (uint(evt.Res)+revt.wrote) {
+		revt.wrote += uint(evt.Res)
 		if err := aio.resubmit(revt); err != nil {
 			return err
 		}
 		return nil
 	}
-	revt.wrote += uint(evt.res)
+	revt.wrote += uint(evt.Res)
 
-	return aio.freeEvent(revt, evt.obj, nil)
+	return aio.freeEvent(revt, evt.Obj, nil)
 }
 
 // resubmit puts a request back into the kernel
