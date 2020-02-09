@@ -160,7 +160,7 @@ func NewIocb(fd uint32) *Iocb {
 	return &Iocb{fd: fd, prio: 0}
 }
 
-func (iocb *Iocb) PrepPread(buf []byte, offset int64) {
+func (iocb *Iocb) PrepPread(buf []byte, bufLen int, offset int64) {
 	var p unsafe.Pointer
 	if len(buf) > 0 {
 		p = unsafe.Pointer(&buf[0])
@@ -169,11 +169,11 @@ func (iocb *Iocb) PrepPread(buf []byte, offset int64) {
 	}
 	iocb.opcode = int16(IOCmdPread)
 	iocb.buf = p
-	iocb.nbytes = uint64(len(buf))
+	iocb.nbytes = uint64(bufLen)
 	iocb.offset = offset
 }
 
-func (iocb *Iocb) PrepPwrite(buf []byte, offset int64) {
+func (iocb *Iocb) PrepPwrite(buf []byte, bufLen int, offset int64) {
 	var p unsafe.Pointer
 	if len(buf) > 0 {
 		p = unsafe.Pointer(&buf[0])
@@ -182,7 +182,7 @@ func (iocb *Iocb) PrepPwrite(buf []byte, offset int64) {
 	}
 	iocb.opcode = int16(IOCmdPwrite)
 	iocb.buf = p
-	iocb.nbytes = uint64(len(buf))
+	iocb.nbytes = uint64(bufLen)
 	iocb.offset = offset
 }
 

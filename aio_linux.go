@@ -264,10 +264,10 @@ func (aio *AsyncIO) resubmit(re *runningEvent) error {
 	switch re.iocb.OpCode() {
 	case IOCmdPread:
 		nBuf := re.data[0][re.wrote:]
-		re.iocb.PrepPread(nBuf, nOffset)
+		re.iocb.PrepPread(nBuf, len(nBuf), nOffset)
 	case IOCmdPwrite:
 		nBuf := re.data[0][re.wrote:]
-		re.iocb.PrepPwrite(nBuf, nOffset)
+		re.iocb.PrepPwrite(nBuf, len(nBuf), nOffset)
 	case IOCmdPreadv:
 		consume(&re.data, int64(re.wrote))
 		re.iocb.PrepPreadv(re.data, nOffset)
@@ -451,10 +451,10 @@ func (aio *AsyncIO) submitIO(cmd IocbCmd, bs [][]byte, offset int64) (RequestID,
 	nIocb := aio.getNextReady()
 	switch cmd {
 	case IOCmdPread:
-		nIocb.PrepPread(bs[0], offset)
+		nIocb.PrepPread(bs[0], len(bs[0]), offset)
 	case IOCmdPwrite:
 		write = true
-		nIocb.PrepPwrite(bs[0], offset)
+		nIocb.PrepPwrite(bs[0], len(bs[0]), offset)
 	case IOCmdPreadv:
 		nIocb.PrepPreadv(bs, offset)
 	case IOCmdPwritev:
