@@ -157,7 +157,7 @@ func (ioctx IOContext) GetEvents(minnr, nr int, events []Event, timeout Timespec
 }
 
 func NewIocb(fd uint32) *Iocb {
-	return &Iocb{fd: fd, prio: 0}
+	return &Iocb{Fd: fd, Prio: 0}
 }
 
 func (iocb *Iocb) PrepPread(buf []byte, bufLen int, offset int64) {
@@ -167,10 +167,10 @@ func (iocb *Iocb) PrepPread(buf []byte, bufLen int, offset int64) {
 	} else {
 		p = unsafe.Pointer(&zero)
 	}
-	iocb.opcode = int16(IOCmdPread)
-	iocb.buf = p
-	iocb.nbytes = uint64(bufLen)
-	iocb.offset = offset
+	iocb.Opcode = int16(IOCmdPread)
+	iocb.Buf = p
+	iocb.Nbytes = uint64(bufLen)
+	iocb.Offset = offset
 }
 
 func (iocb *Iocb) PrepPwrite(buf []byte, bufLen int, offset int64) {
@@ -180,10 +180,10 @@ func (iocb *Iocb) PrepPwrite(buf []byte, bufLen int, offset int64) {
 	} else {
 		p = unsafe.Pointer(&zero)
 	}
-	iocb.opcode = int16(IOCmdPwrite)
-	iocb.buf = p
-	iocb.nbytes = uint64(bufLen)
-	iocb.offset = offset
+	iocb.Opcode = int16(IOCmdPwrite)
+	iocb.Buf = p
+	iocb.Nbytes = uint64(bufLen)
+	iocb.Offset = offset
 }
 
 func (iocb *Iocb) PrepPreadv(bs [][]byte, offset int64) {
@@ -194,10 +194,10 @@ func (iocb *Iocb) PrepPreadv(bs [][]byte, offset int64) {
 	} else {
 		p = unsafe.Pointer(&zero)
 	}
-	iocb.opcode = int16(IOCmdPreadv)
-	iocb.buf = p
-	iocb.nbytes = uint64(len(iovecs))
-	iocb.offset = offset
+	iocb.Opcode = int16(IOCmdPreadv)
+	iocb.Buf = p
+	iocb.Nbytes = uint64(len(iovecs))
+	iocb.Offset = offset
 }
 
 func (iocb *Iocb) PrepPwritev(bs [][]byte, offset int64) {
@@ -208,25 +208,25 @@ func (iocb *Iocb) PrepPwritev(bs [][]byte, offset int64) {
 	} else {
 		p = unsafe.Pointer(&zero)
 	}
-	iocb.opcode = int16(IOCmdPwritev)
-	iocb.buf = p
-	iocb.nbytes = uint64(len(iovecs))
-	iocb.offset = offset
+	iocb.Opcode = int16(IOCmdPwritev)
+	iocb.Buf = p
+	iocb.Nbytes = uint64(len(iovecs))
+	iocb.Offset = offset
 }
 
 func (iocb *Iocb) PrepFSync() {
-	iocb.opcode = int16(IOCmdFSync)
+	iocb.Opcode = int16(IOCmdFSync)
 }
 
 func (iocb *Iocb) PrepFDSync() {
-	iocb.opcode = int16(IOCmdFDSync)
+	iocb.Opcode = int16(IOCmdFDSync)
 }
 
 func (iocb *Iocb) SetEventFd(eventfd int) {
-	iocb.flags |= (1 << 0)
-	iocb.resfd = uint32(eventfd)
+	iocb.Flags |= (1 << 0)
+	iocb.Resfd = uint32(eventfd)
 }
 
 func (iocb *Iocb) OpCode() IocbCmd {
-	return IocbCmd(iocb.opcode)
+	return IocbCmd(iocb.Opcode)
 }

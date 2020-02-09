@@ -1,4 +1,4 @@
-module github.com/silentsharer/ioengine
+module github.com/josiahpwhite/ioengine
 
 go 1.12
 

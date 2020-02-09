@@ -6,17 +6,17 @@ package ioengine
 import "unsafe"
 
 type Iocb struct {
-	data   unsafe.Pointer
-	key    uint64
-	opcode int16
-	prio   int16
-	fd     uint32
-	buf    unsafe.Pointer
-	nbytes uint64
-	offset int64
+	Data   unsafe.Pointer
+	Key    uint64
+	Opcode int16
+	Prio   int16
+	Fd     uint32
+	Buf    unsafe.Pointer
+	Nbytes uint64
+	Offset int64
 	pad1   int64
-	flags  uint32
-	resfd  uint32
+	Flags  uint32
+	Resfd  uint32
 }
 
 type Event struct {

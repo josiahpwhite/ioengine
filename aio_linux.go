@@ -260,7 +260,7 @@ func (aio *AsyncIO) resubmit(re *runningEvent) error {
 		return nil
 	}
 
-	nOffset := re.iocb.offset + int64(re.wrote)
+	nOffset := re.iocb.Offset + int64(re.wrote)
 	switch re.iocb.OpCode() {
 	case IOCmdPread:
 		nBuf := re.data[0][re.wrote:]

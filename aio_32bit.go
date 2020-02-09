@@ -8,20 +8,20 @@ import (
 )
 
 type Iocb struct {
-	data   unsafe.Pointer
+	Data   unsafe.Pointer
 	pad1   uint32
-	key    uint32
+	Key    uint32
 	pad2   uint32
-	opcode int16
-	prio   int16
-	fd     uint32
-	buf    unsafe.Pointer
+	Opcode int16
+	Prio   int16
+	Fd     uint32
+	Buf    unsafe.Pointer
 	pad3   uint32
-	nbytes uint64
-	offset int64
+	Nbytes uint64
+	Offset int64
 	pad4   int64
-	flags  uint32
-	resfd  uint32
+	Flags  uint32
+	Resfd  uint32
 }
 
 type Event struct {
